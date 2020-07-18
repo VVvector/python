@@ -29,7 +29,7 @@ def iperf_data_graph(file):
 
 def main():
     parser = argparse.ArgumentParser(description="This is a example program")
-    parser.add_argument('-f', '--file', default='iperf_test.data', help='the iperf test data')
+    parser.add_argument('-f', '--file', default='iperf_test.data', required=True, help='the iperf test data')
     args = parser.parse_args()
 
     file = args.file
