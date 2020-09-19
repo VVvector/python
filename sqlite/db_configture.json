@@ -1,0 +1,4 @@
+{
+  "col_info": ["ID", "FUNCTION_NAME", "ABSTIME", "DURATION", "FLAG", "FTRACE_LOG"],
+  "table_info": ["main_table"]
+}
