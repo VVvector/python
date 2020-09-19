@@ -15,7 +15,7 @@ def main():
         data, address = sock.recvfrom(4096)
 
         print('received {} bytes from {}'.format(len(data), address))
-        print("data: {}".format(data))
+        print("data: {}".format(data.decode()))
 
         if data:
             sent = sock.sendto(data, address)
