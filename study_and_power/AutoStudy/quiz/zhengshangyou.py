@@ -9,6 +9,7 @@ class ZhengShangYou(object):
         self.conn = conn
         self.cur = cur
         # parameter
+        self.cfg = cfg
         self.rules = rules
         self.ad = ad  # Android development
         self.xm = xm  # xml file decode

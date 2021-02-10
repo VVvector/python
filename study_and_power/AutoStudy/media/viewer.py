@@ -2,16 +2,16 @@
 from time import sleep
 from common import timerUtil
 
+'''设计思路：
+    1. 点击‘百灵’，下拉刷新
+    2. 点击第一个视频进入观看
+    3. 延时指定时间后上划屏幕，进入下一则视频
+    4. 重复步骤3直到完成指定视频数
+    5. 右划退出观看，点击Home返回首页
+'''
+
 
 class Viewer:
-    '''设计思路：
-        1. 点击‘百灵’，下拉刷新
-        2. 点击第一个视频进入观看
-        3. 延时指定时间后上划屏幕，进入下一则视频
-        4. 重复步骤3直到完成指定视频数
-        5. 右划退出观看，点击Home返回首页
-    '''
-
     def __init__(self, cfg, rules, ad, xm):
         self.cfg = cfg
         self.rules = rules
@@ -39,11 +39,11 @@ class Viewer:
         pos_col = self.xm.pos(f'//node[@text="{video_column}"]/@bounds')
         try:
             self.ad.tap(pos_col)  # 点击{video_column}刷新
-            #logger.debug(f'百灵 {video_column}：{pos_col}')
+            # logger.debug(f'百灵 {video_column}：{pos_col}')
         except Exception as e:
             pass
-            #logger.debug(f'百灵 {video_column} 不知道为什么找不到了 摊手')
-            #logger.info(e)
+            # logger.debug(f'百灵 {video_column} 不知道为什么找不到了 摊手')
+            # logger.info(e)
         finally:
             self.ad.tap(self.ding)  # 再点一次百灵刷新
         sleep(3)
@@ -72,15 +72,13 @@ class Viewer:
         delay = 240
         self.enter()
         while count:
-            with timer.Timer() as t:
+            with timerUtil.Timer() as t:
                 count -= 1
                 sleep(5)
-                # #logger.info(f'正在视听学习 第 {count+1:2} 条，还剩 {count:2} 条，{delay:2} 秒后进入下一条...')
-                # logger.debug(f'观看{delay}秒中...')
+                print('正在视听学习 第{}条，还剩{}条，{}秒后进入下一条...'.format(count + 1, count, delay))
                 sleep(delay)
                 self.next()
-            # logger.info(f'视听学习第 {count} 则，耗时 {round(t.elapsed, 2):<05} 秒')
-        # sleep(1200)
+
         self.exit()
 
 

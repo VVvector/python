@@ -32,7 +32,7 @@ class Quiz(object):
         pos = self.xm.pos(self.cfg.get(self.rules, 'rule_quiz_entry'))
         self.ad.tap(pos)
 
-        # zq = ZhengShangYou(self.rules, self.ad, self.xm)
+        # zq = ZhengShangYou(self.cfg, self.rules, self.ad, self.xm)
         # zq.run();
         if day:
             print('开始每日答题')
@@ -41,7 +41,7 @@ class Quiz(object):
             sleep(5)
         if chg:
             print('开始挑战答题')
-            cq = ChallengeQuiz(self.rules, self.ad, self.xm, self.conn, self.cur)
+            cq = ChallengeQuiz(self.cfg, self.rules, self.ad, self.xm, self.conn, self.cur)
             cq.run()
             sleep(5)
         self._fresh()

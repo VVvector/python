@@ -6,6 +6,7 @@ from configparser import ConfigParser
 
 from common import adbUtil, timerUtil, xmlUtil
 from media import viewer, reader
+import quiz
 
 
 class App(object):
@@ -47,7 +48,7 @@ class App(object):
         vd.run()
 
     def _quiz_run(self, day, chg):
-        qApp = Quiz(self.cfg, self.dev_section, self.adb, self.xm, self.conn, self.cur)
+        qApp = quiz.Quiz(self.cfg, self.dev_section, self.adb, self.xm, self.conn, self.cur)
         qApp.start(day, chg)
 
     def start(self, art, vdo, day, chg):

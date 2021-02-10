@@ -4,19 +4,19 @@ import datetime
 from time import sleep
 from common import timerUtil
 
+'''设计思路：
+    0. 前提，APP位于首页
+    1. 点击Home，找到订阅栏，要求用户有订阅公号，建议取关各大学习平台，因为学习平台喜欢上传本地新闻联播视频
+    2. 点击订阅栏，刷新
+    3. 保存第一个Item坐标
+    4. 依次学习后续可点击Item（第二个开始），将最后一个Item拉至第一个Item处
+    5. 在第一轮阅读中插入收藏、分享、评论操作
+    6. 重复步骤4直到完成指定篇数新闻阅读
+    7. 退出文章学习（其实不用退出，本来就在Home页
+'''
+
 
 class Reader:
-    '''设计思路：
-        0. 前提，APP位于首页
-        1. 点击Home，找到订阅栏，要求用户有订阅公号，建议取关各大学习平台，因为学习平台喜欢上传本地新闻联播视频
-        2. 点击订阅栏，刷新
-        3. 保存第一个Item坐标
-        4. 依次学习后续可点击Item（第二个开始），将最后一个Item拉至第一个Item处
-        5. 在第一轮阅读中插入收藏、分享、评论操作
-        6. 重复步骤4直到完成指定篇数新闻阅读
-        7. 退出文章学习（其实不用退出，本来就在Home页
-    '''
-
     def __init__(self, cfg, rules, ad, xm):
         self.cfg = cfg
         self.rules = rules
@@ -112,7 +112,7 @@ class Reader:
         # 阅读文章数量
         count = 10
         # 每篇文章阅读时间
-        delay = 80
+        delay = 40
         # 分享文章数量
         ssc = 2
         self.enter()
@@ -121,6 +121,7 @@ class Reader:
             print('没有获取到任何新闻，请确认是否订阅任何一个公众号！')
 
         while count > 0:
+            print('正在阅读学习 第{}篇，还剩{}篇，{}秒后进入下一条...'.format(count, count - 1, delay))
             self._fresh()
             pos_bottom = self.xm.pos(self.cfg.get(self.rules, 'rule_fixed_bottom_bounds'))
             if pos_bottom.imag > self.fixed_bottom.imag:
@@ -136,7 +137,7 @@ class Reader:
                 if self.cur.execute(self.sqliSearch, (title.replace('"', '%'))):
                     continue  # 该文章已经读过
 
-                with timer.Timer() as t:
+                with timerUtil.Timer() as t:
                     count -= 1
                     self.ad.tap(pos)
                     sleep(1)

@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 class WeeklyQuiz(object):
-    def __init__(self, rules, ad, xm):
+    def __init__(self, cfg, rules, ad, xm):
         # connect MySQL
         self.conn = pymysql.connect(host='192.168.3.4', port=3306, user='root', passwd='123qwe???')
         self.cur = self.conn.cursor()
@@ -19,6 +19,8 @@ class WeeklyQuiz(object):
         self.options = ''  # pos of answer
         self.type = ''  # question type ['单选题','多选题','填空题']
         self.fun = ''  # 功能选择，进行周答题或专项答题
+
+        self.cfg = cfg
         self.rules = rules
         self.ad = ad  # Android development
         self.xm = xm  # xml file decode
@@ -85,9 +87,9 @@ class WeeklyQuiz(object):
 
     # 填空题处理
     def _blank(self):
-        self.question = self.xm.content(cfg.get(self.rules, 'rule_blank_content'))
+        self.question = self.xm.content(self.cfg.get(self.rules, 'rule_blank_content'))
         self.question = self._getQuestion(self.question)
-        edits = self.xm.pos(cfg.get(self.rules, 'rule_edits'))
+        edits = self.xm.pos(self.cfg.get(self.rules, 'rule_edits'))
         print('【%s】%s' % (self.type, self.question))
         if isinstance(edits, list):
             self.count_blank = len(edits)
@@ -103,10 +105,10 @@ class WeeklyQuiz(object):
 
     # 选择题处理
     def _check(self):
-        self.question = self.xm.content(cfg.get(self.rules, 'rule_content'))
+        self.question = self.xm.content(self.cfg.get(self.rules, 'rule_content'))
         self.question = self._getQuestion(self.question)
-        self.options = self.xm.pos(cfg.get(self.rules, 'rule_options'))
-        self.result = self.xm.options(cfg.get(self.rules, 'rule_options_content'))  # 获取答案内容
+        self.options = self.xm.pos(self.cfg.get(self.rules, 'rule_options'))
+        self.result = self.xm.options(self.cfg.get(self.rules, 'rule_options_content'))  # 获取答案内容
         self._search()
         print('【%s】%s' % (self.type, self.question))
         print('【答案】%s\n' % self.correct)
@@ -131,7 +133,7 @@ class WeeklyQuiz(object):
 
     def _desc(self):
         self._fresh()
-        res = self.xm.content(cfg.get(self.rules, 'rule_desc'))
+        res = self.xm.content(self.cfg.get(self.rules, 'rule_desc'))
         if '' == res:
             return True
         else:
@@ -140,7 +142,7 @@ class WeeklyQuiz(object):
 
     def _type(self):
         self._fresh()  # 刷新xml布局文件
-        return self.xm.content(cfg.get(self.rules, 'rule_type'))  # 返回题目类型
+        return self.xm.content(self.cfg.get(self.rules, 'rule_type'))  # 返回题目类型
 
     def _dispatch(self):
         self.type = self._type()

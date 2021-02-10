@@ -18,6 +18,7 @@ class Timer:
             raise RuntimeError(f'Not Started')
         end = self._func()
         self.elapsed += end - self._start
+        print("花费了 {} 秒".format(self.elapsed))
         self._start = None
 
     def reset(self):

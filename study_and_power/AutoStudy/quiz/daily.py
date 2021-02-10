@@ -66,7 +66,7 @@ class DailyQuiz(object):
                 self.correct = 'AB'
             else:
                 self.correct = '不忘初心牢记使命 不忘初心牢记使命 不忘初心牢记使命 不忘初心牢记使命'
-        print("正确答案 - {}".format(self.correct))
+        # print("正确答案 - {}".format(self.correct))
 
     def _updateDB(self):
         if self.isInDB:
@@ -94,7 +94,7 @@ class DailyQuiz(object):
                     sqli = 'update autostudy set AnswerE = %s where Question like %s'
                 else:
                     break
-                print("* {}".format(self.result[i]))
+                # print("* {}".format(self.result[i]))
                 self.cur.execute(sqli, (self.result[i], self.question.replace('"', '%')))
         self.conn.commit()
 
@@ -107,11 +107,11 @@ class DailyQuiz(object):
         # 查找题目描述
         self.question = self.xm.content(self.cfg.get(self.rules, 'rule_blank_content'))
         self.question = self._getQuestion(self.question)
-        print("question: {}".format(self.question))
+        # print("question: {}".format(self.question))
 
         # 查找对应的填空位置
         edits = self.xm.pos(self.cfg.get(self.rules, 'rule_edits'))
-        print("edits: {}".format(edits))
+        # print("edits: {}".format(edits))
         if isinstance(edits, list):
             self.count_blank = len(edits)
         else:
@@ -124,7 +124,7 @@ class DailyQuiz(object):
         # 拆分答案
         answers = self.correct.split(' ')
         for edit, self.correct in zip(edits, answers):
-            print("input answers: {}".format(self.correct))
+            # print("input answers: {}".format(self.correct))
             self.ad.tap(edit)
             sleep(1)
             self.ad.input(self.correct)
@@ -134,10 +134,10 @@ class DailyQuiz(object):
     def _check(self):
         self.question = self.xm.content(self.cfg.get(self.rules, 'rule_content'))
         self.question = self._getQuestion(self.question)
-        print("question: {}".format(self.question))
+        # print("question: {}".format(self.question))
         self.options = self.xm.pos(self.cfg.get(self.rules, 'rule_options'))
         self.result = self.xm.options(self.cfg.get(self.rules, 'rule_options_content'))  # 获取答案内容
-        print("answers - {}".format(self.result))
+        # print("answers - {}".format(self.result))
         self._search()
         for c in self.correct:
             self.ad.tap(self.options[ord(c) - 65])
@@ -146,7 +146,7 @@ class DailyQuiz(object):
         if self.p_submit == 0j:
             self._fresh()
             self.p_submit = self.xm.pos(self.cfg.get(self.rules, 'rule_submit'))
-            print("p_submit: {}".format(self.p_submit))
+            # print("p_submit: {}".format(self.p_submit))
 
         self.ad.tap(self.p_submit)
 
@@ -194,23 +194,28 @@ class DailyQuiz(object):
             pass
         else:
             self._submit()  # 点击下一题或者完成
-        self._print_question()
+        # self._print_question()
 
     def run(self):
+        i = 1
         score = 0
         # 开始答题
         self._enter()
         # 每次回答5题，每日答题6组
         while True:
+            i = i - 1
             self.rightCount = 0
             for j in range(5):
+                print('正在每日答题 第{}轮，还剩{}轮，第{}题'.format(i + 1, i, j + 1))
                 sleep(2)
                 self._dispatch()
             sleep(5)
 
+            # 5题全对
             if self.rightCount == 5:
                 score += 2
 
+            # 有答对的，但是没有全对
             elif self.rightCount > 1:
                 score += 1
 
@@ -221,7 +226,11 @@ class DailyQuiz(object):
             else:
                 break
 
+            if i <= 0:
+                break
+
         self.ad.back()  # 返回到我要答题界面
+
         return True
 
 

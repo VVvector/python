@@ -5,7 +5,7 @@ from time import sleep
 
 
 class Quzi(object):
-    def __init__(self, rules, ad, xm, entrance, question, ):
+    def __init__(self, cfg, rules, ad, xm, entrance, question, ):
         # connect MySQL
         self.conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='123qwe???')
         self.cur = self.conn.cursor()
@@ -22,6 +22,7 @@ class Quzi(object):
         self.isCorrect = True  # if Answer if false, Then Update DB
 
         self.rules = rules
+        self.cfg = cfg
         self.ad = ad  # Android development
         self.xm = xm  # xml file decode
         self.entrance = entrance
@@ -36,7 +37,7 @@ class Quzi(object):
 
     def _enter(self):
         self._fresh()
-        pos = self.xm.pos(cfg.get(self.rules, self.entrance))
+        pos = self.xm.pos(self.cfg.get(self.rules, self.entrance))
         self.ad.tap(pos)
 
     def _getQuestion(self, str):
@@ -75,15 +76,15 @@ class Quzi(object):
             else:
                 self.correct = '不忘初心牢记使命 不忘初心牢记使命 不忘初心牢记使命 不忘初心牢记使命'
 
-    def _updateDB(self)
-        if isInDB:
+    def _updateDB(self):
+        if self.isInDB:
             pass
-        else
+        else:
             # Print Question
-            print("【Update DB】")
+            print("[Update DB]")
             print("【%s】%s" % (self.type, self.question))
             sqli = 'insert into questionbank (Type,Question,Correct,Classify) value (%s,%s,%s,%s)'
-            self.cur.execute(sqli, (self.type, self.question, self.correct, '学习强国')):
+            self.cur.execute(sqli, (self.type, self.question, self.correct, '学习强国'))
             if self.type == '单选题' or self.type == '多选题':
                 for i in range(len(self.result)):
                     # sqli = 'update questionbank set Answer'+
@@ -106,9 +107,9 @@ class Quzi(object):
 
     # 填空题处理
     def _blank(self):
-        self.question = self.xm.content(cfg.get(self.rules, 'rule_blank_content'))
+        self.question = self.xm.content(self.cfg.get(self.rules, 'rule_blank_content'))
         self.question = self._getQuestion(self.question)
-        edits = self.xm.pos(cfg.get(self.rules, 'rule_edits'))
+        edits = self.xm.pos(self.cfg.get(self.rules, 'rule_edits'))
         if isinstance(edits, list):
             self.count_blank = len(edits)
         else:
@@ -122,10 +123,10 @@ class Quzi(object):
 
     # 选择题处理
     def _check(self):
-        self.question = self.xm.content(cfg.get(self.rules, 'rule_content'))
+        self.question = self.xm.content(self.cfg.get(self.rules, 'rule_content'))
         self.question = self._getQuestion(self.question)
-        self.options = self.xm.pos(cfg.get(self.rules, 'rule_options'))
-        self.result = self.xm.options(cfg.get(self.rules, 'rule_options_content'))  # 获取答案内容
+        self.options = self.xm.pos(self.cfg.get(self.rules, 'rule_options'))
+        self.result = self.xm.options(self.cfg.get(self.rules, 'rule_options_content'))  # 获取答案内容
         # self.result = self.result.split(' ')
         self._search()
         for c in self.correct:
@@ -134,18 +135,18 @@ class Quzi(object):
     def _submit(self):
         if self.p_submit == 0j:
             self._fresh()
-            self.p_submit = self.xm.pos(cfg.get(self.rules, 'rule_submit'))
+            self.p_submit = self.xm.pos(self.cfg.get(self.rules, 'rule_submit'))
         self.ad.tap(self.p_submit)
 
     def _next(self):
         if self.p_next == 0j:
             self._fresh()
-            self.p_next = self.xm.pos(cfg.get(self.rules, 'rule_next'))
+            self.p_next = self.xm.pos(self.cfg.get(self.rules, 'rule_next'))
         self.ad.tap(self.p_next)
 
     def _desc(self):
         self._fresh()
-        res = self.xm.content(cfg.get(self.rules, 'rule_desc'))
+        res = self.xm.content(self.cfg.get(self.rules, 'rule_desc'))
         if '' == res:
             return True
         else:
@@ -155,7 +156,7 @@ class Quzi(object):
 
     def _type(self):
         self._fresh()  # 刷新xml布局文件
-        return self.xm.content(cfg.get(self.rules, 'rule_type'))  # 返回题目类型
+        return self.xm.content(self.cfg.get(self.rules, 'rule_type'))  # 返回题目类型
 
     def _dispatch(self):
         self.type = self._type()
@@ -195,7 +196,7 @@ class Quzi(object):
         self.ad.back()  # 返回到我要答题界面
         return True
 
-    def runChallenge(self)
+    def runChallenge(self):
         while True:
             self.count = 15
             self._enter()  # 点击进入答题
