@@ -19,10 +19,10 @@ class Mysql(object):
 
         if self.db_type == "mysql":
             self.open_mysql()
+            self.check_mysql_table()
         else:
             self.open_sqlite3()
-
-        self.check_db_table()
+            self.check_sqlite3_table()
 
     def open_mysql(self):
         # connect MySQL
@@ -32,10 +32,10 @@ class Mysql(object):
         self.conn.select_db(self.db_name)
 
     def open_sqlite3(self):
-        self.conn = sqlite3.connect(self.db_name)
+        self.conn = sqlite3.connect(self.db_name + '.db')
         self.cur = self.conn.cursor()
 
-    def check_db_table(self):
+    def check_sqlite3_table(self):
         col_format = ["ID", "Type", "Question", "AnswerA", "AnswerB", "AnswerC", "AnswerD", "AnswerE", "Correct"]
         sql = " CREATE TABLE IF NOT EXISTS {} ({} INTEGER PRIMARY KEY NOT NULL," \
               "{} CHAR,{} VARCHAR,{} VARCHAR,{} VARCHAR,{} VARCHAR, {} VARCHAR, {} VARCHAR, {} VARCHAR);".format(
@@ -43,6 +43,15 @@ class Mysql(object):
             col_format[3], col_format[4], col_format[5], col_format[6],
             col_format[7], col_format[8])
 
+        self.cur.execute(sql)
+        self.conn.commit()
+
+    def check_mysql_table(self):
+        col_format = ["Type", "Question", "AnswerA", "AnswerB", "AnswerC", "AnswerD", "AnswerE", "Correct"]
+        sql = 'CREATE TABLE IF NOT EXISTS `{}` (`{}` CHAR,`{}` VARCHAR(255),`{}` VARCHAR(255),`{}` VARCHAR(255),`{}` VARCHAR(255), `{}` VARCHAR(255), `{}` VARCHAR(255), `{}` VARCHAR(255))ENGINE=InnoDB DEFAULT CHARSET=utf8;'.format(
+            self.table_name, col_format[0], col_format[1], col_format[2],
+            col_format[3], col_format[4], col_format[5], col_format[6],
+            col_format[7])
         self.cur.execute(sql)
         self.conn.commit()
 
