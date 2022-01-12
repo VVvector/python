@@ -37,6 +37,10 @@ class Device(object):
         self.ad.uiautomator()
         self.xm.load()
 
+    def get_context(self, text_rule):
+        self.fresh_page()
+        return self.xm.content(text_rule)
+
     def get_pos(self, pos_rule):
         return self.xm.pos(pos_rule)
 

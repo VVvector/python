@@ -72,6 +72,7 @@ if __name__ == "__main__":
 
     logger.debug(path)
     rules = []
+
     rule = '//node[@content-desc="收听“党建之声”"]/following-sibling::node[3]/node/@bounds'
     rules.append(rule)
 
@@ -126,7 +127,27 @@ if __name__ == "__main__":
     rule ='//node[@text="下拉刷新"]/following-sibling::node[1]/child::node()/node[1]/@bounds'
     rules.append(rule)
 
+    rule ='//node[@content-desc="学习进行时" or @text="学习进行时"]/@bounds'
+    rules.append(rule)
+
+    rule ='//node[@content-desc="请选择您要阅读的专题" or @text="请选择您要阅读的专题"]/following-sibling::node[1]/@bounds'
+    rules.append(rule)
+
+    rule = '//node[@text="上级精神"]/following-sibling::node[3]/node[1]/node[1]/@bounds'
+    rules.append(rule)
+
+    rule = '//node[@text="工作动态"]/following-sibling::node[1]/node/@bounds'
+    rules.append(rule)
+
+    rule = '//node[@content-desc="开始答题" or @text="开始答题"]/@bounds'
+    rules.append(rule)
+	
     for rule in rules:
         logger.debug(rule)
         pos = xm.pos(rule)
         logger.debug(pos)
+
+    rule = '//node[@content-desc="积分规则" or @text="积分规则"]/following-sibling::node[1]/@text'
+    logger.debug(rule)
+    text = xm.content(rule)
+    logger.debug(text)
