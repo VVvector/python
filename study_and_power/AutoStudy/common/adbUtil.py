@@ -101,7 +101,7 @@ class ADB(object):
         elif 'right' == orientation:
             self.swipe(x1, y0, x1 + distance, y0, duration)
         else:
-            logger.warning('没有这个方向 {} 无法划动'.format(orientation))
+            logger.warning('没有这个方向, {} 无法划动'.format(orientation))
         return 0
 
     def uiautomator(self, path=None):
@@ -133,14 +133,14 @@ class ADB(object):
 
     def swipe(self, sx, sy, dx, dy, duration):
         # swipe from (sx, sy) to (dx, dy) in duration ms
-        # print('滑动操作 ({}, {}) --{}ms-> ({}, {})'.format(sx, sy, duration, dx, dy))
+        logger.debug('滑动 ({}, {}) --{}ms-> ({}, {})'.format(sx, sy, duration, dx, dy))
         cmd = 'adb -s {} shell input swipe {} {} {} {} {}'.format(self.device, sx, sy, dx, dy, duration)
         res = subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
         return res
 
     def slide(self, begin, end, duration=500):
         # 接收complex参数坐标
-        # print('滑动操作 {} --{}ms-> {}'.format(begin, duration, end))
+        logger.debug('滑动 {} --{}ms-> {}'.format(begin, duration, end))
         sx, sy = int(begin.real), int(begin.imag)
         dx, dy = int(end.real), int(end.imag)
         cmd = 'adb -s {} shell input swipe {} {} {} {} {}'.format(self.device, sx, sy, dx, dy, duration)
@@ -161,7 +161,7 @@ class ADB(object):
                 # raise AttributeError('{} 不是可点击的坐标'.format(x))
                 return False
 
-        logger.debug('触摸操作 ({}, {})'.format(dx, dy))
+        logger.debug('点击 ({}, {})'.format(dx, dy))
         self.swipe(dx, dy, dx, dy, duration)
         return True
 

@@ -2,6 +2,7 @@
 import re
 from lxml import etree
 import logging
+import shutil
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.DEBUG)
@@ -54,6 +55,8 @@ class Xmler(object):
         res = self.root.xpath(rule)
         return len(res)
 
+    def save_page_xml(self, file_name):
+        shutil.copyfile("C:/Users/vec/AppData/Local/Temp/ui.xml", "D:/xpath/{}.xml".format(file_name))
 
 if __name__ == "__main__":
     from argparse import ArgumentParser

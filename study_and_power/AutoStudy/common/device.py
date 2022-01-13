@@ -49,7 +49,6 @@ class Device(object):
         return self.ad.tap(pos)
 
     def draw(self, orientation='down', distance=100, duration=500):
-        logger.debug("draw: {}".format(orientation))
         self.ad.draw(orientation, distance, duration)
 
     def input_content(self, content):
@@ -88,6 +87,7 @@ class Device(object):
         return False
 
     def back(self):
+        logger.debug("返回到上一级")
         self.ad.back()
 
     def get_desktop_activity(self):
@@ -99,6 +99,9 @@ class Device(object):
     def close_app(self, packet_name):
         self.ad.close_app(packet_name)
 
+    def save_page_xml(self, file_name):
+        file_name = "{}-{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), file_name)
+        self.xm.save_page_xml(file_name)
 
 if __name__ == '__main__':
     pass
