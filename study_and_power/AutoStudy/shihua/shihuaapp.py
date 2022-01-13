@@ -4,6 +4,7 @@ from time import sleep
 import os
 import logging
 import requests
+import shutil
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.DEBUG)
@@ -60,13 +61,11 @@ class App(object):
                 logger.debug("input shihua app password")
                 self.dev.input_content('QWEr1234')
                 self.dev.click(self.cfg.get(self.rules, 'pos_login'), True)
-                # 登陆后等待15S才能进入主页
                 sleep(6)
 
         self.dev.fresh_page()
         self.dev.click(self.cfg.get(self.rules, 'system_update_bottom'), True)
 
-        logger.debug("check login shihua app ....")
         if self.check_in_homepage():
             logger.debug("login shihua app success!")
             return True
@@ -95,12 +94,12 @@ class App(object):
         self.dev.close_dev()
 
     def click_bottom(self, bottom_name):
-        logger.debug("start enter: {}".format(bottom_name))
         if self.dev.click(self.cfg.get(self.rules, bottom_name), True):
             logger.debug("enter {} page success!".format(bottom_name))
             return True
         else:
             logger.debug("enter {} page failed!".format(bottom_name))
+            shutil.copyfile("C:/Users/vec/AppData/Local/Temp/ui.xml", "D:/xpath/{}.xml".format(bottom_name))
             return False
 
     def back_to_homepage(self):
@@ -129,7 +128,7 @@ class App(object):
         sleep(3)
 
         # 暂停
-        self.click_bottom("pause_bottom")
+        # self.click_bottom("pause_bottom")
 
         self.back_to_homepage()
         logger.info("结束 - 收听“党建之声”")
@@ -170,7 +169,9 @@ class App(object):
         self.click_bottom("zhuangti_choose_pos")
 
         self.click_bottom("zhuangti_article_pos")
-        sleep(5)
+
+        # 学习3分钟
+        sleep(185)
 
         self.back_to_homepage()
         logger.info("结束 - 阅读专题栏目文章")
@@ -192,7 +193,9 @@ class App(object):
 
         pos_list = self.get_pos("liulanmenhu_article_pos", True)
         self.dev.tap_pos(pos_list[0])
-        sleep(5)
+
+        # 学习30秒
+        sleep(35)
 
         self.back_to_homepage()
         logger.info("结束 - 浏览企业所在门户")
@@ -247,7 +250,7 @@ class App(object):
         send_text = "石化党建-{}".format(self.dev.get_context(points_pos))
         logger.debug(send_text)
 
-        url = ''
+       
         requests.post(url)
 
         self.back_to_homepage()

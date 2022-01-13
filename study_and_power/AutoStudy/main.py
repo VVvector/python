@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
 import logging
 
-
 from common import device
 from common import dbUtil
 from xuexi import xuexiapp

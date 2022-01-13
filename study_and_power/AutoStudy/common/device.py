@@ -9,7 +9,8 @@ from . import adbUtil
 from . import xmlUtil
 
 logger = logging.getLogger(__name__)
-logger.setLevel(level = logging.DEBUG)
+logger.setLevel(level=logging.DEBUG)
+
 
 class Device(object):
     def __init__(self):
@@ -28,10 +29,10 @@ class Device(object):
         self.ad = adbUtil.ADB(self.xmluri, self.cfg.getboolean(self.rules, 'is_virtual_machine'),
                               self.cfg.get(self.rules, 'host'), self.cfg.getint(self.rules, 'port')
                               )
+
     def __del_(self):
         logger.error("del")
         self.ad.close()
-
 
     def fresh_page(self):
         self.ad.uiautomator()
@@ -97,6 +98,7 @@ class Device(object):
 
     def close_app(self, packet_name):
         self.ad.close_app(packet_name)
+
 
 if __name__ == '__main__':
     pass

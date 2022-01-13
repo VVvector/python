@@ -119,10 +119,8 @@ class ADB(object):
         cmd = 'adb -s {} pull /sdcard/ui.xml {}'.format(self.device, path)
         subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
 
-        #logger.debug("ui.xml size1: {}".format(path.stat().st_size))
         if 10240 > path.stat().st_size:
             sleep(1)
-        #logger.debug("ui.xml size2: {}".format(path.stat().st_size))
 
     def screenshot(self, path=None):
         if not path:
@@ -205,7 +203,7 @@ class ADB(object):
             pass
 
         logger.debug("dump acttivity log")
-        #cmd = 'adb -s {} shell dumpsys package > /sdcard/activity.log'.format(self.device)
+        # cmd = 'adb -s {} shell dumpsys package > /sdcard/activity.log'.format(self.device)
         cmd = "adb -s {} logcal > /sdcard/activity.log".format(self.device)
         subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
 

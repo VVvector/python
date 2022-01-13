@@ -4,7 +4,8 @@ from lxml import etree
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(level = logging.DEBUG)
+logger.setLevel(level=logging.DEBUG)
+
 
 def str2complex(s):
     x0, y0, x1, y1 = [int(x) for x in re.findall(r'\d+', s)]
@@ -19,7 +20,7 @@ class Xmler(object):
         logger.debug(self.path)
 
     def load(self):
-        #logger.debug("path: {}".format(self.path))
+        # logger.debug("path: {}".format(self.path))
         self.root = etree.parse(str(self.path))
 
     def texts(self, rule: str) -> list:
@@ -31,8 +32,9 @@ class Xmler(object):
         res = self.texts(rule)
         logger.debug(res)
         points = [str2complex(x) for x in res]
+
         if len(points) == 0:
-            logger.warning("can't find out the points!!!!")
+            logger.warning("can't find out the points!")
 
         if len(points) == 1:
             res = points[0]
@@ -91,8 +93,8 @@ if __name__ == "__main__":
     rule = '//node[@content-desc="每日练习"]/following-sibling::node[3]/node/@bounds'
     rules.append(rule)
 
-    #text = xm.content(rule)
-    #logger.debug(text)
+    # text = xm.content(rule)
+    # logger.debug(text)
 
     rule = '//node[@content-desc="学习"]/@bounds'
     rules.append(rule)
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     rule = '//node[@content-desc="业务"]/@bounds'
     rules.append(rule)
 
-    rule ='//node[@content-desc="我的"]/@bounds'
+    rule = '//node[@content-desc="我的"]/@bounds'
     rules.append(rule)
 
     rule = '//node[@text="确认"]/@bounds'
@@ -124,13 +126,13 @@ if __name__ == "__main__":
     rule = '//node[@text="第一学习"]/following-sibling::node[1]/node/@bounds'
     rules.append(rule)
 
-    rule ='//node[@text="下拉刷新"]/following-sibling::node[1]/child::node()/node[1]/@bounds'
+    rule = '//node[@text="下拉刷新"]/following-sibling::node[1]/child::node()/node[1]/@bounds'
     rules.append(rule)
 
-    rule ='//node[@content-desc="学习进行时" or @text="学习进行时"]/@bounds'
+    rule = '//node[@content-desc="学习进行时" or @text="学习进行时"]/@bounds'
     rules.append(rule)
 
-    rule ='//node[@content-desc="请选择您要阅读的专题" or @text="请选择您要阅读的专题"]/following-sibling::node[1]/@bounds'
+    rule = '//node[@content-desc="请选择您要阅读的专题" or @text="请选择您要阅读的专题"]/following-sibling::node[1]/@bounds'
     rules.append(rule)
 
     rule = '//node[@text="上级精神"]/following-sibling::node[3]/node[1]/node[1]/@bounds'
@@ -141,7 +143,7 @@ if __name__ == "__main__":
 
     rule = '//node[@content-desc="开始答题" or @text="开始答题"]/@bounds'
     rules.append(rule)
-	
+
     for rule in rules:
         logger.debug(rule)
         pos = xm.pos(rule)
