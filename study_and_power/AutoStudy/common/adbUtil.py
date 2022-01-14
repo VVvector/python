@@ -158,7 +158,7 @@ class ADB(object):
             try:
                 dx, dy = int(x.real), int(x.imag)
             except Exception as e:
-                # raise AttributeError('{} 不是可点击的坐标'.format(x))
+                logger.debug('{}是不可点击的坐标'.format(x))
                 return False
 
         logger.debug('点击 ({}, {})'.format(dx, dy))

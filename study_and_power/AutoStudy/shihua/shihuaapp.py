@@ -99,7 +99,7 @@ class App(object):
             return True
         else:
             logger.debug("进入 <{}> 失败".format(bottom_name))
-            self.dev.save_page_xml(bottom_name)
+            # self.dev.save_page_xml(bottom_name)
             return False
 
     def back_to_homepage(self):
