@@ -111,7 +111,7 @@ class App(object):
             i -= 1
             if not self.check_homepage():
                 self.dev.back()
-                sleep(2)
+                sleep(1)
             else:
                 ret = True
                 break
@@ -168,6 +168,7 @@ class App(object):
     def browse_company_websites(self):
         logger.info("开始 - 浏览企业所在门户")
         self.dev.draw('up', distance=400)
+        self.dev.draw('up', distance=500)
         self.click_bottom("浏览所在企业门户")
         sleep(6)
         self.click_bottom("工作动态的更多")
@@ -181,6 +182,7 @@ class App(object):
     def browse_external_websites(self):
         logger.info("开始 - 通过平台链接浏览外部网站")
         self.dev.draw('up', distance=400)
+        self.dev.draw('up', distance=500)
         self.click_bottom("通过平台链接浏览外部网站")
         sleep(3)
         self.click_bottom("学习进行时")
