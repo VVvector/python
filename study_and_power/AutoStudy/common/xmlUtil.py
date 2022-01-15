@@ -85,7 +85,14 @@ if __name__ == "__main__":
     rule = '//node[@content-desc="1/3" or @text="1/3"]/parent::node/following-sibling::node[1]/node/@text'
     rules.append(rule)
 
+    rule = '//node/@text'
+    rules.append(rule)
+
     for rule in rules:
         logger.debug(rule)
         text = xm.get_content(rule)
         logger.debug(text)
+        text_list = text.split(' ')
+        logger.debug(text)
+        if "学习" in text_list and "共享" in text_list and "业务" in text_list and "我的" in text_list:
+            logger.debug("在主页中")

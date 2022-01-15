@@ -4,6 +4,7 @@ from time import sleep
 import os
 import logging
 import requests
+import random
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.DEBUG)
@@ -38,7 +39,9 @@ class App(object):
         while count > 0:
             count -= 1
             self.dev.fresh_page()
-            if self.dev.get_position(self.cfg.get(self.rules, '主页')):
+            page_content = self.dev.get_text(self.cfg.get(self.rules, '主页'))
+            text_list = page_content.split(' ')
+            if "学习" in text_list and "共享" in text_list and "业务" in text_list and "我的" in text_list:
                 return True
             else:
                 logger.debug("进入主页失败")
@@ -95,11 +98,10 @@ class App(object):
 
     def click_bottom(self, bottom_name):
         if self.dev.click(self.cfg.get(self.rules, bottom_name), True):
-            logger.debug("进入 <{}> 成功".format(bottom_name))
             return True
         else:
-            logger.debug("进入 <{}> 失败".format(bottom_name))
-            # self.dev.save_page_xml(bottom_name)
+            logger.debug("进入 <{}> 页面失败".format(bottom_name))
+            self.dev.save_page_xml(bottom_name)
             return False
 
     def back_to_homepage(self):
@@ -109,7 +111,7 @@ class App(object):
             i -= 1
             if not self.check_homepage():
                 self.dev.back()
-                sleep(1)
+                sleep(2)
             else:
                 ret = True
                 break
@@ -128,9 +130,10 @@ class App(object):
     def listen_voice_of_party(self):
         logger.info("开始 - 收听“党建之声”")
         self.click_bottom("收听党建之声")
+        sleep(random.randint(2, 5))
         # 播放
         self.click_bottom("收听党建之声的播放")
-        sleep(1)
+        sleep(random.randint(2, 5))
         # 暂停
         # self.click_bottom("收听党建之声的暂停")
         logger.info("结束 - 收听“党建之声”")
@@ -138,16 +141,16 @@ class App(object):
     def read_article(self):
         logger.info("开始 - 阅读文章")
         self.click_bottom("阅读文章")
-        sleep(3)
+        sleep(6)
         self.click_bottom("第一学习的更多")
-        sleep(3)
+        sleep(6)
         for i in range(5):
             pos_list = self.get_position("第一学习的文章列表", True)
             logger.debug("阅读第{}篇文章".format(i))
             self.dev.tap_position(pos_list[i])
             sleep(1)
             self.dev.draw('up', distance=100)
-            sleep(1)
+            sleep(random.randint(1, 3))
             self.dev.back()
             sleep(1)
         logger.info("结束 - 阅读文章")
@@ -155,33 +158,33 @@ class App(object):
     def read_special_article(self):
         logger.info("开始 - 阅读专题栏目文章")
         self.click_bottom("阅读专题栏目文章")
-        sleep(1)
+        sleep(random.randint(2, 5))
         self.click_bottom("学党史")
         self.click_bottom("上级精神的第一篇文章")
         # 学习3分钟
-        sleep(185)
+        sleep(3 * 60 + random.randint(1, 20))
         logger.info("结束 - 阅读专题栏目文章")
 
     def browse_company_websites(self):
         logger.info("开始 - 浏览企业所在门户")
         self.dev.draw('up', distance=400)
         self.click_bottom("浏览所在企业门户")
-        sleep(1)
+        sleep(6)
         self.click_bottom("工作动态的更多")
-        sleep(5)
+        sleep(6)
         pos_list = self.get_position("工作动态的第一篇文章", True)
         self.dev.tap_position(pos_list[0])
         # 学习30秒
-        sleep(35)
+        sleep(30 + random.randint(1, 10))
         logger.info("结束 - 浏览企业所在门户")
 
     def browse_external_websites(self):
         logger.info("开始 - 通过平台链接浏览外部网站")
         self.dev.draw('up', distance=400)
         self.click_bottom("通过平台链接浏览外部网站")
-        sleep(1)
+        sleep(3)
         self.click_bottom("学习进行时")
-        sleep(5)
+        sleep(random.randint(1, 3))
         logger.info("结束 - 通过平台链接浏览外部网站")
 
     def daily_practice(self):
