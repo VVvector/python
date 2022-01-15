@@ -121,10 +121,9 @@ class App(object):
 
     def enter_my_points_page(self):
         self.back_to_homepage()
+        self.click_bottom("学习")
         self.click_bottom("我的")
-        sleep(1)
         self.click_bottom("我的积分")
-        sleep(1)
 
     def listen_voice_of_party(self):
         logger.info("开始 - 收听“党建之声”")

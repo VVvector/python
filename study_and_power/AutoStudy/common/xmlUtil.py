@@ -72,13 +72,20 @@ if __name__ == "__main__":
 
     logger.debug(path)
     rules = []
+    rule = '//node[@content-desc="1/3" or @text="1/3"]/parent::node/following-sibling::node[1]/node/@bounds'
+    rules.append(rule)
 
     for rule in rules:
         logger.debug(rule)
         pos = xm.get_position(rule)
         logger.debug(pos)
 
-    rule = '//node[@content-desc="积分规则" or @text="积分规则"]/following-sibling::node[1]/@text'
-    logger.debug(rule)
-    text = xm.get_content(rule)
-    logger.debug(text)
+    # 获取第一个选择题的选项
+    rules = []
+    rule = '//node[@content-desc="1/3" or @text="1/3"]/parent::node/following-sibling::node[1]/node/@text'
+    rules.append(rule)
+
+    for rule in rules:
+        logger.debug(rule)
+        text = xm.get_content(rule)
+        logger.debug(text)

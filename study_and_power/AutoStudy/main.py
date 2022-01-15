@@ -15,12 +15,14 @@ def main():
     db = dbUtil.DB()
     dev = device.Device()
     dev.fresh_page()
+    # dev.save_page_xml("全部完成")
 
-    #xuexi_app = xuexiapp.App(dev, db)
-    #xuexi_app.artical_study()
+    # xuexi_app = xuexiapp.App(dev, db)
+    # xuexi_app.artical_study()
 
     shihua_app = shihuaapp.App(dev, db)
     shihua_app.test_ui()
+
 
 if __name__ == "__main__":
     main()
