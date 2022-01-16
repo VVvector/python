@@ -3,10 +3,9 @@ import re
 import subprocess
 from time import sleep
 from pathlib import Path
-import logging
+from . import util
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.DEBUG)
+logger = util.get_logger(__name__)
 
 
 class ADB(object):

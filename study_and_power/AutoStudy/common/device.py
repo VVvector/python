@@ -1,14 +1,13 @@
 # -*- coding:utf-8 -*-
 from configparser import ConfigParser
 from pathlib import Path
-import logging
 import os
 import time
 from . import adbUtil
 from . import xmlUtil
+from . import util
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.DEBUG)
+logger = util.get_logger(__name__)
 
 
 class Device(object):

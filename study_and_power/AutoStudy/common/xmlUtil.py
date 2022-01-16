@@ -3,9 +3,9 @@ import re
 from lxml import etree
 import logging
 import shutil
+from . import util
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.DEBUG)
+logger = util.get_logger(__name__)
 
 
 class Xmler(object):

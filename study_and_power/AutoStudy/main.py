@@ -1,18 +1,14 @@
 # -*- coding:utf-8 -*-
-import logging
-
 from common import device
-from common import dbUtil
+from common import util
+
 from xuexi import xuexiapp
 from shihua import shihuaapp
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s - [%(filename)s:%(lineno)d] - %(message)s')
-    logger = logging.getLogger(__name__)
-    logger.setLevel(level=logging.DEBUG)
+    logger = util.get_logger(__name__)
 
-    db = dbUtil.DB()
     dev = device.Device()
     dev.fresh_page()
     # dev.save_page_xml("全部完成")
@@ -20,8 +16,10 @@ def main():
     # xuexi_app = xuexiapp.App(dev, db)
     # xuexi_app.artical_study()
 
-    shihua_app = shihuaapp.App(dev, db)
+    shihua_app = shihuaapp.App(dev)
     shihua_app.test_ui()
+
+    logger.info("自动学习完成")
 
 
 if __name__ == "__main__":

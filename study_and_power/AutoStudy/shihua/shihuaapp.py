@@ -2,16 +2,15 @@
 from configparser import ConfigParser
 from time import sleep
 import os
-import logging
 import requests
 import random
+from common import util
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.DEBUG)
+logger = util.get_logger(__name__)
 
 
 class App(object):
-    def __init__(self, device, db):
+    def __init__(self, device, db=None):
         cfg = ConfigParser()
         cur_path = os.path.dirname(os.path.abspath(__file__))
         config_file_path = os.path.join(cur_path, "config.ini")
@@ -223,6 +222,8 @@ class App(object):
             self.restart()
 
         self.enter_my_points_page()
+
+        return
         self.listen_voice_of_party()
 
         self.enter_my_points_page()
