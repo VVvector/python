@@ -85,6 +85,10 @@ class Device(object):
         logger.debug("返回到上一级")
         self.adb.back()
 
+    def delete(self):
+        logger.debug("删除")
+        self.adb.delete()
+
     def set_activity(self, activity):
         self.adb.set_activity(activity)
 

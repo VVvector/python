@@ -9,6 +9,17 @@ logger = util.get_logger(__name__)
 
 
 class ADB(object):
+    KEYCODE_HOME = 3  # home键
+    KEYCODE_MENU = 82  # menu键
+    KEYCODE_BACK = 4  # back键
+    KEYCODE_POWER = 26  # power键
+    KEYCODE_DPAD_UP = 19  # 向上
+    KEYCODE_DPAD_DOWN = 20  # 向下
+    KEYCODE_DPAD_LEFT = 21  # 向左
+    KEYCODE_DPAD_RIGHT = 22  # 向右
+    KEYCODE_DEL = 67  # 删除
+    KEYCODE_NOTIFICATION = 83  # 解锁
+
     def __init__(self, path=Path('./temp/ui.xml'), is_virtual: bool = True, host='127.0.0.1', port=7555):
         subprocess.Popen('adb version', shell=True)
         self.path = path
@@ -133,7 +144,7 @@ class ADB(object):
     def draw(self, orientation='down', distance=100, duration=500):
         height, width = max(self.wm_size), min(self.wm_size)
         x0, x1, x2 = width // 2, width // 3, width // 3 * 2
-        y0, y1, y2 = height // 2, height // 3, height // 3 * 2
+        y0, y1, y2 = height // 2, height // 3, height // 5 * 3
         if 'down' == orientation:
             self.swipe(x0, y1, x0, y1 + distance, duration)
         elif 'up' == orientation:
@@ -164,11 +175,6 @@ class ADB(object):
         self.swipe(dx, dy, dx, dy, duration)
         return True
 
-    def back(self):
-        # 返回按键
-        cmd = 'adb -s {} shell input keyevent 4'.format(self.device)
-        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
-
     def input(self, msg):
         cmd = 'adb -s {} shell am broadcast -a ADB_INPUT_TEXT --es msg {}'.format(self.device, msg)
         subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
@@ -191,6 +197,51 @@ class ADB(object):
 
     def close_app(self, app_packet_name):
         cmd = 'adb -s {} shell am force-stop {}'.format(self.device, app_packet_name)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 点击返回键
+    def back(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_BACK)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 删除
+    def delete(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_DEL)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 点击home键
+    def home(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_HOME)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 点击菜单键
+    def menu(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_MENU)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 按一下电源键
+    def power(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_POWER)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 向上滑动
+    def up(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_DPAD_UP)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 向下滑动
+    def down(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_DPAD_DOWN)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 向左滑动
+    def left(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_DPAD_LEFT)
+        subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
+
+    # 向右滑动
+    def right(self):
+        cmd = 'adb shell input keyevent {}'.format(self.KEYCODE_DPAD_RIGHT)
         subprocess.check_call(cmd, shell=True, stdout=subprocess.PIPE)
 
 

@@ -4,6 +4,7 @@ from time import sleep
 import os
 import requests
 import random
+import json
 from common import util
 
 logger = util.get_logger(__name__)
@@ -15,10 +16,23 @@ class App(object):
         cur_path = os.path.dirname(os.path.abspath(__file__))
         config_file_path = os.path.join(cur_path, "config.ini")
         cfg.read(config_file_path, encoding='utf-8')
+
         self.dev = device
         self.cfg = cfg
         self.rules = 'monitor_rule'
         self.start_times = 0
+
+        cur_path = os.path.dirname(os.path.abspath(__file__))
+        user_info_path = os.path.join(cur_path, "user_info.json")
+        self.user_info_list = []
+        with open(user_info_path, 'r') as f:
+            user_info_dict = json.load(f)
+            self.user_info_list = user_info_dict["user_info"]
+            logger.debug(self.user_info_list)
+
+        self.user = None
+        self.psd = None
+        self.push_link = None
 
     def get_position_rule(self, position_name):
         return self.cfg.get(self.rules, position_name)
@@ -60,12 +74,18 @@ class App(object):
 
         logger.debug("查看是否需要登录")
         if not self.check_homepage():
+            if self.dev.click(self.cfg.get(self.rules, '用户名'), True):
+                for i in range(20):
+                    self.dev.delete()
+                logger.debug("输入用户名")
+                self.dev.set_text(self.user)
             if self.dev.click(self.cfg.get(self.rules, '密码'), True):
                 logger.debug("输入密码")
-                self.dev.set_text(self.cfg.get(self.rules, '实际密码'))
-                self.dev.click(self.cfg.get(self.rules, '登录'), True)
-                logger.debug("等待登录。。。")
-                sleep(6)
+                self.dev.set_text(self.psd)
+
+            self.dev.click(self.cfg.get(self.rules, '登录'), True)
+            logger.debug("等待登录。。。")
+            sleep(6)
 
         # 确认系统过久的提示
         self.dev.fresh_page()
@@ -119,6 +139,12 @@ class App(object):
             logger.debug("保存进入主页失败时的页面xml文件")
             self.dev.save_page_xml("主页检查失败")
             self.restart()
+
+    def update_user_info(self, i):
+        self.user = self.user_info_list[i]["name"]
+        self.psd = self.user_info_list[i]["psd"]
+        self.push_link = self.user_info_list[i]["push_link"]
+        logger.info("user info: {}, {}, {}".format(self.user, self.psd, self.push_link))
 
     def enter_my_points_page(self):
         self.back_to_homepage()
@@ -211,19 +237,17 @@ class App(object):
         send_text = "石化党建-{}".format(self.dev.get_text(points_pos))
         logger.debug(send_text)
 
-        url = self.cfg.get(self.rules, "推送链接")
+        url = self.push_link
         url = '{}{}'.format(url, send_text)
         requests.post(url)
 
         logger.info("结束 - 发送积分到手机")
 
-    def test_ui(self):
+    def auto_test(self):
         if not self.check_homepage():
             self.restart()
 
         self.enter_my_points_page()
-
-        return
         self.listen_voice_of_party()
 
         self.enter_my_points_page()
@@ -241,4 +265,8 @@ class App(object):
         self.enter_my_points_page()
         self.push_points_to_phone()
 
+    def test_ui(self):
+        for i in range(len(self.user_info_list)):
+            self.update_user_info(i)
+            self.auto_test()
         self.stop()
