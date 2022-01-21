@@ -158,9 +158,10 @@ class App(object):
         sleep(random.randint(2, 5))
         # 播放
         self.click_bottom("收听党建之声的播放")
-        sleep(random.randint(2, 5))
+        logger.info("收听3分钟。。。")
+        sleep(3 * 60 + random.randint(2, 10))
         # 暂停
-        # self.click_bottom("收听党建之声的暂停")
+        self.click_bottom("收听党建之声的退出")
         logger.info("结束 - 收听“党建之声”")
 
     def read_article(self):
@@ -187,6 +188,7 @@ class App(object):
         self.click_bottom("学党史")
         self.click_bottom("上级精神的第一篇文章")
         # 学习3分钟
+        logger.info("阅读3分钟。。。")
         sleep(3 * 60 + random.randint(1, 20))
         logger.info("结束 - 阅读专题栏目文章")
 
@@ -201,6 +203,7 @@ class App(object):
         pos_list = self.get_position("工作动态的第一篇文章", True)
         self.dev.tap_position(pos_list[0])
         # 学习30秒
+        logger.info("阅读30秒。。。")
         sleep(30 + random.randint(1, 10))
         logger.info("结束 - 浏览企业所在门户")
 
@@ -269,4 +272,5 @@ class App(object):
         for i in range(len(self.user_info_list)):
             self.update_user_info(i)
             self.auto_test()
-        self.stop()
+            self.stop()
+            sleep(3)

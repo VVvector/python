@@ -75,6 +75,9 @@ if __name__ == "__main__":
     rule = '//node[@content-desc="1/3" or @text="1/3"]/parent::node/following-sibling::node[1]/node/@bounds'
     rules.append(rule)
 
+    rule = '//node[@text="石化党建"]/node[1]/node[4]/node[2]/node[2]/@bounds'
+    rules.append(rule)
+
     for rule in rules:
         logger.debug(rule)
         pos = xm.get_position(rule)

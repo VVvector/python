@@ -144,7 +144,7 @@ class ADB(object):
     def draw(self, orientation='down', distance=100, duration=500):
         height, width = max(self.wm_size), min(self.wm_size)
         x0, x1, x2 = width // 2, width // 3, width // 3 * 2
-        y0, y1, y2 = height // 2, height // 3, height // 5 * 3
+        y0, y1, y2 = height // 2, height // 3, height // 3 * 2
         if 'down' == orientation:
             self.swipe(x0, y1, x0, y1 + distance, duration)
         elif 'up' == orientation:
