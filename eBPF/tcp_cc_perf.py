@@ -320,6 +320,7 @@ void kprobe__tcp_cong_avoid_ai(struct pt_regs *ctx, struct tcp_sock *tp, u32 w, 
     events.perf_submit(ctx, &data, sizeof(data));
 };
 
+/************************************* BIC ***********************************************/
 void kprobe__bictcp_state(struct pt_regs *ctx, struct sock *sk, u8 new_state)
 {
     struct data_t data = {};
@@ -382,6 +383,168 @@ void kprobe__bictcp_cong_avoid(struct pt_regs *ctx, struct sock *sk, u32 ack, u3
 
         data.output[7] = ca_state;
         data.output[8] = in_slow_start;
+        data.output[9] = ss_cwnd_limit;
+        data.output[10] = is_cwnd_limited;
+
+        events.perf_submit(ctx, &data, sizeof(data));
+    }
+}
+
+/************************************* CUBIC ***********************************************/
+
+/************************************* TCP XMIT ***********************************************/
+
+bool kprobe__tcp_write_xmit(struct pt_regs *ctx, struct sock *sk, unsigned int mss_now, int nonagle,
+			   int push_one, gfp_t gfp)
+{
+    struct data_t data = {};
+    struct tcp_sock *tp = tcp_sk(sk);
+
+    u16 dport = sk->__sk_common.skc_dport;
+    if (ntohs(dport) == 5201) {
+        struct inet_sock *sock = (struct inet_sock *)sk;
+        u16 sport = sock->inet_sport;
+        u32 saddr = sk->__sk_common.skc_rcv_saddr;
+        u32 daddr = sk->__sk_common.skc_daddr;
+
+        u8 in_slow_start = tp->snd_cwnd < tp->snd_ssthresh;
+        u8 ss_cwnd_limit = tp->snd_cwnd < 2 * tp->max_packets_out;
+        u8 is_cwnd_limited = *(u8 *)((u64)&tp->tlp_high_seq - 1);
+        u8 ca_state = *(u8 *)((u64)&tp->inet_conn.icsk_retransmits - 1);
+
+        data.pid = bpf_get_current_pid_tgid();
+        data.ts = bpf_ktime_get_ns();
+        bpf_get_current_comm(&data.comm, sizeof(data.comm));
+        data.func_id = 10;
+        data.output[0] = saddr;
+        data.output[1] = ntohs(sport);
+        data.output[2] = daddr;
+        data.output[3] = ntohs(dport);
+        data.output[4] = tp->snd_cwnd;
+        data.output[5] = tp->snd_ssthresh;
+        
+        data.output[6] = tp->packets_out;
+        data.output[7] = sk->sk_pacing_rate;
+        data.output[8] = tp->max_packets_out;
+
+        data.output[9] = ss_cwnd_limit;
+        data.output[10] = is_cwnd_limited;
+
+        events.perf_submit(ctx, &data, sizeof(data));
+    }
+
+    return 0;
+}
+
+void kprobe__tcp_event_new_data_sent(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
+{
+    struct data_t data = {};
+    struct tcp_sock *tp = tcp_sk(sk);
+
+    u16 dport = sk->__sk_common.skc_dport;
+    if (ntohs(dport) == 5201) {
+        struct inet_sock *sock = (struct inet_sock *)sk;
+        u16 sport = sock->inet_sport;
+        u32 saddr = sk->__sk_common.skc_rcv_saddr;
+        u32 daddr = sk->__sk_common.skc_daddr;
+
+        u8 in_slow_start = tp->snd_cwnd < tp->snd_ssthresh;
+        u8 ss_cwnd_limit = tp->snd_cwnd < 2 * tp->max_packets_out;
+        u8 is_cwnd_limited = *(u8 *)((u64)&tp->tlp_high_seq - 1);
+        u8 ca_state = *(u8 *)((u64)&tp->inet_conn.icsk_retransmits - 1);
+
+        data.pid = bpf_get_current_pid_tgid();
+        data.ts = bpf_ktime_get_ns();
+        bpf_get_current_comm(&data.comm, sizeof(data.comm));
+        data.func_id = 11;
+        data.output[0] = saddr;
+        data.output[1] = ntohs(sport);
+        data.output[2] = daddr;
+        data.output[3] = ntohs(dport);
+        data.output[4] = tp->snd_cwnd;
+        data.output[5] = tp->snd_ssthresh;
+    
+        data.output[6] = tp->packets_out;
+        data.output[7] = sk->sk_pacing_rate;
+        data.output[8] = tp->max_packets_out;
+
+        data.output[9] = ss_cwnd_limit;
+        data.output[10] = is_cwnd_limited;
+
+        events.perf_submit(ctx, &data, sizeof(data));
+    }
+}
+
+void kprobe__tcp_update_pacing_rate(struct pt_regs *ctx, struct sock *sk)
+{
+     struct data_t data = {};
+    struct tcp_sock *tp = tcp_sk(sk);
+
+    u16 dport = sk->__sk_common.skc_dport;
+    if (ntohs(dport) == 5201) {
+        struct inet_sock *sock = (struct inet_sock *)sk;
+        u16 sport = sock->inet_sport;
+        u32 saddr = sk->__sk_common.skc_rcv_saddr;
+        u32 daddr = sk->__sk_common.skc_daddr;
+
+        u8 in_slow_start = tp->snd_cwnd < tp->snd_ssthresh;
+        u8 ss_cwnd_limit = tp->snd_cwnd < 2 * tp->max_packets_out;
+        u8 is_cwnd_limited = *(u8 *)((u64)&tp->tlp_high_seq - 1);
+        u8 ca_state = *(u8 *)((u64)&tp->inet_conn.icsk_retransmits - 1);
+
+        data.pid = bpf_get_current_pid_tgid();
+        data.ts = bpf_ktime_get_ns();
+        bpf_get_current_comm(&data.comm, sizeof(data.comm));
+        data.func_id = 12;
+        data.output[0] = saddr;
+        data.output[1] = ntohs(sport);
+        data.output[2] = daddr;
+        data.output[3] = ntohs(dport);
+        data.output[4] = tp->snd_cwnd;
+        data.output[5] = tp->snd_ssthresh;
+        
+        data.output[6] = tp->packets_out;
+        data.output[7] = sk->sk_pacing_rate;
+        data.output[8] = tp->max_packets_out;
+
+        data.output[9] = ss_cwnd_limit;
+        data.output[10] = is_cwnd_limited;
+
+        events.perf_submit(ctx, &data, sizeof(data));
+    }   
+}
+
+void kprobe_tcp_tsq_handler(struct pt_regs *ctx, struct sock *sk)
+{
+    struct data_t data = {};
+    struct tcp_sock *tp = tcp_sk(sk);
+
+    u16 dport = sk->__sk_common.skc_dport;
+    if (ntohs(dport) == 5201) {
+        struct inet_sock *sock = (struct inet_sock *)sk;
+        u16 sport = sock->inet_sport;
+        u32 saddr = sk->__sk_common.skc_rcv_saddr;
+        u32 daddr = sk->__sk_common.skc_daddr;
+
+        u8 in_slow_start = tp->snd_cwnd < tp->snd_ssthresh;
+        u8 ss_cwnd_limit = tp->snd_cwnd < 2 * tp->max_packets_out;
+        u8 is_cwnd_limited = *(u8 *)((u64)&tp->tlp_high_seq - 1);
+        u8 ca_state = *(u8 *)((u64)&tp->inet_conn.icsk_retransmits - 1);
+
+        data.pid = bpf_get_current_pid_tgid();
+        data.ts = bpf_ktime_get_ns();
+        bpf_get_current_comm(&data.comm, sizeof(data.comm));
+        data.func_id = 13;
+        data.output[0] = saddr;
+        data.output[1] = ntohs(sport);
+        data.output[2] = daddr;
+        data.output[3] = ntohs(dport);
+        data.output[4] = tp->snd_cwnd;
+        data.output[5] = tp->snd_ssthresh;
+        data.output[6] = tp->packets_out;
+
+        data.output[7] = sk->sk_pacing_rate;
+        data.output[8] = 0;
         data.output[9] = ss_cwnd_limit;
         data.output[10] = is_cwnd_limited;
 
