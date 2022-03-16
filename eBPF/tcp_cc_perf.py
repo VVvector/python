@@ -41,7 +41,7 @@ struct bictcp {
 };
 
 //workaround: avoid the compile error!!!
-static inline u32 trace_tcp_packet_in_flight(struct tcp_sock *tp)
+static u32 trace_tcp_packet_in_flight(struct tcp_sock *tp)
 {
     u32 tcp_left_out = tp->sacked_out + tp->lost_out;
     u32 tcp_packets_in_flight = tp->packets_out - tcp_left_out + tp->retrans_out;
@@ -71,7 +71,7 @@ int kprobe__tcp_v4_rcv(struct pt_regs *ctx, struct sk_buff *skb)
     data.output[10] = skb->len;
 
     events.perf_submit(ctx, &data, sizeof(data));
-    
+
     return 0;
 }
 #endif
@@ -79,7 +79,7 @@ int kprobe__tcp_v4_rcv(struct pt_regs *ctx, struct sk_buff *skb)
 int kprobe__tcp_v4_do_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
 {
     struct data_t data = {};
-    struct tcp_skb_cb *tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));;
+    struct tcp_skb_cb *tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));
     struct tcp_sock *tp = tcp_sk(sk);
 
     u32 saddr = sk->__sk_common.skc_rcv_saddr;
@@ -108,7 +108,7 @@ int kprobe__tcp_v4_do_rcv(struct pt_regs *ctx, struct sock *sk, struct sk_buff *
 
         events.perf_submit(ctx, &data, sizeof(data));
     }
-    
+
     return 0;
 }
 
@@ -144,7 +144,7 @@ bool kprobe__tcp_add_backlog(struct pt_regs *ctx, struct sock *sk, struct sk_buf
 
         events.perf_submit(ctx, &data, sizeof(data));
     }
-    
+
     return 1;
 }
 
@@ -385,7 +385,7 @@ void kprobe__bictcp_cong_avoid(struct pt_regs *ctx, struct sock *sk, u32 ack, u3
         data.output[5] = tp->snd_ssthresh;
         data.output[6] = tp->rcv_wnd;
 
-        data.output[7] = ca_state;
+        data.output[7] = acked;
         data.output[8] = in_slow_start;
         data.output[9] = ss_cwnd_limit;
         data.output[10] = is_cwnd_limited;
@@ -455,7 +455,7 @@ void kprobe__cubictcp_cong_avoid(struct pt_regs *ctx, struct sock *sk, u32 ack, 
         data.output[5] = tp->snd_ssthresh;
         data.output[6] = tp->rcv_wnd;
 
-        data.output[7] = ca_state;
+        data.output[7] = acked;
         data.output[8] = in_slow_start;
         data.output[9] = ss_cwnd_limit;
         data.output[10] = is_cwnd_limited;
@@ -468,8 +468,68 @@ void kprobe__cubictcp_cong_avoid(struct pt_regs *ctx, struct sock *sk, u32 ack, 
 static u32 my_refcount_read(refcount_t *r)
 {
 #define MY_READ_ONCE(var) (*((volatile typeof(var) *)(&(var))))
-    
+
     return (*((volatile typeof(r->refs.counter) *)(&(r->refs.counter))));
+}
+
+static bool trace_before(__u32 seq1, __u32 seq2)
+{
+        return (__s32)(seq1-seq2) < 0;
+}
+#define trace_after(seq2, seq1) 	trace_before(seq1, seq2)
+
+static u32 trace_tcp_wnd_end(struct tcp_sock *tp)
+{
+	return tp->snd_una + tp->snd_wnd;
+}
+
+static bool trace_tcp_snd_wnd_test(struct tcp_sock *tp, struct sk_buff *skb, unsigned int cur_mss)
+{
+    if (!skb)
+        return 0;
+
+    struct tcp_skb_cb *tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));
+	u32 end_seq = tcb->end_seq;
+
+	if (skb->len > cur_mss)
+		end_seq = tcb->seq + cur_mss;
+
+	return !trace_after(end_seq, trace_tcp_wnd_end(tp));
+}
+
+static unsigned int trace_tcp_cwnd_test(struct tcp_sock *tp, struct sk_buff *skb)
+{
+    if (!skb)
+        return 0;
+
+    struct tcp_skb_cb *tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));
+	u32 in_flight, cwnd, halfcwnd;
+
+	in_flight = trace_tcp_packet_in_flight(tp);
+
+	cwnd = tp->snd_cwnd;
+	if (in_flight >= cwnd)
+		return 0;
+
+    halfcwnd = cwnd >> 1;
+    if (halfcwnd < 1)
+        halfcwnd = 1;
+
+    if (halfcwnd > (cwnd - in_flight))
+        return cwnd - in_flight;
+    else
+        return halfcwnd;
+}
+
+static struct sk_buff *trace_tcp_send_head(struct sock *sk)
+{
+	struct sk_buff_head *list_ = &sk->sk_write_queue;
+	struct sk_buff *skb = list_->next;
+
+	if (skb == (struct sk_buff *)list_)
+		skb = NULL;
+
+	return skb;
 }
 
 bool kprobe__tcp_write_xmit(struct pt_regs *ctx, struct sock *sk, unsigned int mss_now, int nonagle,
@@ -477,6 +537,7 @@ bool kprobe__tcp_write_xmit(struct pt_regs *ctx, struct sock *sk, unsigned int m
 {
     struct data_t data = {};
     struct tcp_sock *tp = tcp_sk(sk);
+    struct sk_buff *skb = trace_tcp_send_head(sk);
 
     u16 dport = sk->__sk_common.skc_dport;
     if (ntohs(dport) == 5201) {
@@ -499,13 +560,13 @@ bool kprobe__tcp_write_xmit(struct pt_regs *ctx, struct sock *sk, unsigned int m
         data.output[3] = ntohs(dport);
 
         data.output[4] = tp->snd_cwnd;
-        data.output[5] = tp->snd_ssthresh;
-        
+
+        data.output[5] = trace_tcp_snd_wnd_test(tp, skb, mss_now);
         data.output[6] = tp->packets_out;
-        data.output[7] = sk->sk_pacing_rate;
+        data.output[7] = sk->sk_pacing_rate >> 10;
         data.output[8] = tp->max_packets_out;
-        data.output[9] = my_refcount_read( &sk->sk_wmem_alloc);
-        data.output[10] = is_cwnd_limited;
+        data.output[9] = sk->sk_tsq_flags;
+        data.output[10] = trace_tcp_cwnd_test(tp, skb);
 
         events.perf_submit(ctx, &data, sizeof(data));
     }
@@ -519,9 +580,10 @@ int kretprobe____tcp_transmit_skb(struct pt_regs *ctx, struct sock *sk, struct s
     int ret = PT_REGS_RC(ctx);
     struct data_t data = {};
     struct tcp_sock *tp = tcp_sk(sk);
+    struct tcp_skb_cb *tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));
 
     u16 dport = sk->__sk_common.skc_dport;
-    if ((ret < 0) && (ntohs(dport) == 5201)) {
+    if ((ntohs(dport) == 5201)) {
         struct inet_sock *sock = (struct inet_sock *)sk;
         u16 sport = sock->inet_sport;
         u32 saddr = sk->__sk_common.skc_rcv_saddr;
@@ -531,7 +593,7 @@ int kretprobe____tcp_transmit_skb(struct pt_regs *ctx, struct sock *sk, struct s
         data.ts = bpf_ktime_get_ns();
         bpf_get_current_comm(&data.comm, sizeof(data.comm));
         data.func_id = 13;
-    
+
         data.output[0] = saddr;
         data.output[1] = ntohs(sport);
         data.output[2] = daddr;
@@ -539,13 +601,13 @@ int kretprobe____tcp_transmit_skb(struct pt_regs *ctx, struct sock *sk, struct s
 
         data.output[4] = tp->snd_cwnd;
         data.output[5] = tp->snd_ssthresh;
-        
+
         data.output[6] = tp->packets_out;
-        data.output[7] = sk->sk_pacing_rate;
+        data.output[7] = sk->sk_pacing_rate >> 10;
         data.output[8] = tp->max_packets_out;
 
         data.output[9] = ret;
-        data.output[10] = 0;
+        data.output[10] = tcb->tcp_gso_segs;
 
         events.perf_submit(ctx, &data, sizeof(data));
     }
@@ -573,7 +635,7 @@ void kprobe__tcp_event_new_data_sent(struct pt_regs *ctx, struct sock *sk, struc
         data.ts = bpf_ktime_get_ns();
         bpf_get_current_comm(&data.comm, sizeof(data.comm));
         data.func_id = 14;
-        
+
         data.output[0] = saddr;
         data.output[1] = ntohs(sport);
         data.output[2] = daddr;
@@ -581,7 +643,7 @@ void kprobe__tcp_event_new_data_sent(struct pt_regs *ctx, struct sock *sk, struc
 
         data.output[4] = tp->snd_cwnd;
         data.output[5] = tp->snd_ssthresh;
-    
+
         data.output[6] = tp->packets_out;
         data.output[7] = sk->sk_pacing_rate;
         data.output[8] = tp->max_packets_out;
@@ -620,7 +682,7 @@ void kprobe__tcp_update_pacing_rate(struct pt_regs *ctx, struct sock *sk)
 
         data.output[4] = tp->snd_cwnd;
         data.output[5] = tp->snd_ssthresh;
-        
+
         data.output[6] = tp->packets_out;
         data.output[7] = sk->sk_pacing_rate;
         data.output[8] = tp->max_packets_out;
@@ -659,11 +721,11 @@ void kprobe_tcp_tsq_handler(struct pt_regs *ctx, struct sock *sk)
 
         data.output[4] = tp->snd_cwnd;
         data.output[5] = tp->snd_ssthresh;
-    
+
         data.output[6] = tp->packets_out;
         data.output[7] = sk->sk_pacing_rate;
         data.output[8] = tp->max_packets_out;
-    
+
         data.output[9] = ss_cwnd_limit;
         data.output[10] = is_cwnd_limited;
 
@@ -728,18 +790,19 @@ def evt_poll_perf_data(cpu, data, size):
         event.output[4], event.output[5], event.output[6], event.output[7],
         event.output[8], event.output[9], event.output[10])
 
-    #print(stats_content)
+    # print(stats_content)
     save_ebpf_stats("{}\n".format(stats_content))
 
 
 def ebpf_perf_buffer_show():
     global ebpf_info
     print("tcp cc trace")
-    print("{:<16} {:<16} {:<6} {:<2} - {:<16}:{:<6} -> {:<16}:{:<6} - {:<8} {:<12} {:<8} {:<12} {:<8} {:<8} {:<8}".format(
-        "time_s", "comm", "pid",
-        "func",
-        "v0", "v1", "v2","v3", "v4", "v5",
-        "v6", "v7", "v8", "v9", "v10"))
+    print(
+        "{:<16} {:<16} {:<6} {:<2} - {:<16}:{:<6} -> {:<16}:{:<6} - {:<8} {:<12} {:<8} {:<12} {:<8} {:<8} {:<8}".format(
+            "time_s", "comm", "pid",
+            "func",
+            "v0", "v1", "v2", "v3", "v4", "v5",
+            "v6", "v7", "v8", "v9", "v10"))
 
     try:
         ebpf_info.stats_file_handle = open(ebpf_info.stats_file, "w", encoding='UTF-8')
