@@ -1,0 +1,19 @@
+{
+  "byte_order": "<",
+  "person_info": {
+    "name": "8s",
+    "male": "?",
+    "age": "H",
+    "height": "I",
+    "weight": "f",
+    "feature_size": "I",
+    "test": null,
+    "feature": {
+      "Strength": "f",
+      "Intelligence": "f",
+      "Constitution": "f",
+      "Dexterity": "f",
+      "Mentality": "f"
+    }
+  }
+}
