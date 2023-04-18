@@ -2,6 +2,8 @@
 from collections import OrderedDict
 import struct
 import json
+import ctypes
+import binascii
 
 '''
 二进制文件的写入和读取
@@ -42,7 +44,7 @@ def read_file(file_path):
 
 def write_file(file_path, person, features):
     file = open(file_path, "wb")
-    # file.seek(0, 2)
+
     # 把字符串的地方转为字节类型,还要先转成utf-8的编码(否则报错string argument without an encoding)
     name = struct.pack('<8s', person['name'].encode('utf-8'))
     file.write(name)
@@ -54,7 +56,7 @@ def write_file(file_path, person, features):
     file.write(height)
     weight = struct.pack('<f', person['weight'])
     file.write(weight)
-    features_size = struct.pack('<I', 5 * 4)
+    features_size = struct.pack('<I', person['feature_size'])
     file.write(features_size)
     for key, value in features.items():
         feature_value = struct.pack('<f', value)
@@ -62,7 +64,11 @@ def write_file(file_path, person, features):
     file.close()
 
 
-def parse_person_bin(person_bin, person_json):
+person_info = dict()
+person_feature_info = dict()
+
+
+def get_format(person_json):
     with open(person_json, "r") as f:
         # Starting with Python 3.7, the regular dict became order preserving, so it is no longer necessary
         # to specify collections.OrderedDict for JSON generation and parsing.
@@ -72,19 +78,16 @@ def parse_person_bin(person_bin, person_json):
     format_byte_order = person_info_format_dict["byte_order"]
     person_info_format = "{}".format(format_byte_order)
     person_info_keys = []
-    for k, v in person_info_format_dict["person_info"].items():
+    for k, v in person_info_format_dict["person_info"]["person_format"].items():
         if k == "feature":
             break
-        if v is None:
-            continue
         person_info_format = "{}{}".format(person_info_format, v)
         person_info_keys.append(k)
     person_info_format_size = struct.calcsize(person_info_format)
     print("person_info_format: {}, size: {}".format(person_info_format, person_info_format_size))
-
-    # just for test
-    person_info_format_dict["person_info"]["test"] = "8s"
-    print("person info: {}".format(person_info_format_dict["person_info"]))
+    person_info["format"] = person_info_format
+    person_info["format_size"] = person_info_format_size
+    person_info["keys"] = person_info_keys
 
     person_feature_format = "{}".format(format_byte_order)
     person_feature_keys = []
@@ -93,21 +96,50 @@ def parse_person_bin(person_bin, person_json):
         person_feature_keys.append(k)
     person_feature_format_size = struct.calcsize(person_feature_format)
     print("person_feature_format: {}, size: {}".format(person_feature_format, person_feature_format_size))
+    person_feature_info["format"] = person_feature_format
+    person_feature_info["format_size"] = person_feature_format_size
+    person_feature_info["keys"] = person_feature_keys
 
+
+def parse_person_bin(person_bin):
     with open(person_bin, "rb") as f:
         f.seek(0, 0)
-        person_info_value_tuple = struct.unpack(person_info_format, f.read(person_info_format_size))
+        person_info_value_tuple = struct.unpack(person_info["format"], f.read(person_info["format_size"]))
         person_info_values = list(person_info_value_tuple)
         print("person info: {}".format(person_info_values))
-        person_info_dict = dict(zip(person_info_keys, person_info_values))
+        person_info_dict = dict(zip(person_info["keys"], person_info_values))
         print("person info dict: {}".format(person_info_dict))
 
-        f.seek(person_info_format_size, 0)
-        person_feature_value_tuple = struct.unpack(person_feature_format, f.read(person_feature_format_size))
+        f.seek(person_info["format_size"], 0)
+        person_feature_value_tuple = struct.unpack(person_feature_info["format"],
+                                                   f.read(person_feature_info["format_size"]))
         person_feature_values = list(person_feature_value_tuple)
         print("person feature info: {}".format(person_feature_values))
-        person_feature_dict = dict(zip(person_feature_keys, person_feature_values))
+        person_feature_dict = dict(zip(person_feature_info["keys"], person_feature_values))
         print("person feature dict: {}".format(person_feature_dict))
+
+
+def write_file_by_buffer(file_path, person, features):
+    with open(file_path, "wb") as f:
+        person_info_values = list(person.values())
+        #avoid struct.error: argument for 's' must be a bytes object
+        person_info_values[0] = person_info_values[0].encode('utf-8')
+        person_info_values = tuple(person_info_values)
+        print("person info values: {}".format(person_info_values))
+
+        print("{} {}".format(person_info["format_size"], person_info["format"]))
+        buff = ctypes.create_string_buffer(person_info["format_size"])
+        struct.pack_into(person_info["format"], buff, 0, *person_info_values)
+        f.write(buff)
+        print('Packed Value :', binascii.hexlify(buff))
+
+        features_values = tuple(features.values())
+        print("feature values: {}".format(features_values))
+        print("{} {}".format(person_feature_info["format_size"], person_feature_info["format"]))
+        buff = ctypes.create_string_buffer(person_feature_info["format_size"])
+        struct.pack_into(person_feature_info["format"], buff, 0, *features_values)
+        f.write(buff)
+        print('Packed Value :', binascii.hexlify(buff))
 
 
 def main():
@@ -117,6 +149,7 @@ def main():
     person.update({'age': 25})
     person.update({'height': 178})
     person.update({'weight': 64.0})
+    person.update({'feature_size': 20})
     features = {'Strength': 54.0,  # 力量
                 'Intelligence': 78.0,  # 智力
                 'Constitution': 32.0,  # 体力
@@ -125,10 +158,12 @@ def main():
                 }
     file_path = "./person_info.bin"
     write_file(file_path, person, features)
-    person_info = read_file(file_path)
-    print(person_info)
+    print(read_file(file_path))
 
-    parse_person_bin(file_path, "./person.json")
+    get_format("./person.json")
+    parse_person_bin(file_path)
+
+    write_file_by_buffer("./person_info_1.bin", person, features)
 
 
 if __name__ == '__main__':
