@@ -6,6 +6,8 @@
         <gdppc>141100</gdppc>
         <neighbor name="Austria" direction="E"/>
         <neighbor name="Switzerland" direction="W"/>
+        <rank>100</rank>
+        <country>test</country>
     </country>
     <country name="Singapore">
         <rank>4</rank>
@@ -20,4 +22,11 @@
         <neighbor name="Costa Rica" direction="W"/>
         <neighbor name="Colombia" direction="E"/>
     </country>
+    <country1 name="Panama">
+        <rank>68</rank>
+        <year>2011</year>
+        <gdppc>13600</gdppc>
+        <neighbor name="Costa Rica" direction="W"/>
+        <neighbor name="Colombia" direction="E"/>
+    </country1>
 </data>
